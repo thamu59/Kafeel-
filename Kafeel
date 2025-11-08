@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EMI Calculator</title>
+  <style>
+    :root{
+      --bg:#f7fafc;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --accent:#0ea5a4;
+      --danger:#ef4444;
+      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    body{
+      margin:0;
+      padding:24px;
+      background:linear-gradient(180deg,#eef2ffdd, #f7fafc);
+      color:#111827;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .container{
+      width:100%;
+      max-width:920px;
+      background:var(--card);
+      border-radius:12px;
+      box-shadow:0 10px 30px rgba(2,6,23,0.08);
+      padding:20px;
+      display:grid;
+      gap:18px;
+      grid-template-columns: 1fr 360px;
+    }
+    header{
+      grid-column:1/-1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    h1{font-size:18px;margin:0}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+    .form{
+      padding:10px 6px;
+      display:grid;
+      gap:12px;
+    }
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+    .row{display:flex;gap:12px}
+    input[type="number"], select{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid #e6e9ef;
+      border-radius:8px;
+      font-size:14px;
+    }
+    .small{
+      width:120px;
+    }
+    .controls{display:flex;gap:10px;align-items:center}
+    button{
+      background:var(--accent);
+      border:0;color:white;padding:10px 12px;border-radius:8px;
+      font-weight:600;cursor:pointer;
+    }
+    button.secondary{
+      background:#eef2f2;color:#064e50;border:0;
+    }
+    .results{
+      padding:14px;
+      background:linear-gradient(180deg,#ffffff,#fbfeff);
+      border-radius:10px;
+      border:1px solid #f1f5f9;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .result-item{display:flex;justify-content:space-between;align-items:center}
+    .big{font-size:20px;font-weight:700;color:#04494a}
+    .muted{color:var(--muted);font-size:13px}
+    .notice{color:var(--danger);font-size:13px}
+    .amort-table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+      margin-top:8px;
+    }
+    .amort-table th, .amort-table td{
+      padding:6px 8px;
+      border-bottom:1px solid #f1f5f9;
+      text-align:right;
+    }
+    .amort-table th{background:#fbfdfe;text-align:right;color:var(--muted);font-weight:600}
+    .toggle-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    footer{grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;padding-top:6px}
+    @media (max-width:880px){
+      .container{grid-template-columns:1fr; padding:16px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="application" aria-label="EMI calculator">
+    <header>
+      <div>
+        <h1>EMI Calculator</h1>
+        <p class="lead">Calculate monthly EMI, total interest and total payment for a loan.</p>
+      </div>
+      <div class="muted">Quick, responsive, zero-dependency</div>
+    </header>
+
+    <section class="form" aria-labelledby="inputs-heading">
+      <h2 id="inputs-heading" style="font-size:14px;margin:0 0 6px 0">Loan details</h2>
+
+      <div>
+        <label for="principal">Loan amount (principal)</label>
+        <input id="principal" type="number" inputmode="decimal" min="0" step="0.01" placeholder="e.g. 1000000" value="1000000" />
+      </div>
+
+      <div class="row">
+        <div style="flex:1">
+          <label for="rate">Annual interest rate (%)</label>
+          <input id="rate" type="number" inputmode="decimal" min="0" step="0.01" placeholder="e.g. 7.5" value="7.5" />
+        </div>
+        <div style="width:160px">
+          <label for="tenure">Tenure</label>
+          <div style="display:flex;gap:8px">
+            <input id="tenure" class="small" type="number" inputmode="numeric" min="1" step="1" placeholder="Months / Years" value="20" />
+            <select id="tenureUnit" aria-label="Tenure unit">
+              <option value="years" selected>Years</option>
+              <option value="months">Months</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls" style="margin-top:6px;">
+        <button id="calcBtn">Calculate EMI</button>
+        <button id="resetBtn" class="secondary" type="button">Reset</button>
+        <div style="flex:1"></div>
+        <div class="muted" id="last-updated"></div>
+      </div>
+
+      <div id="error" class="notice" role="alert" style="display:none"></div>
+    </section>
+
+    <aside class="results" aria-labelledby="results-heading">
+      <div class="toggle-row">
+        <h2 id="results-heading" style="font-size:14px;margin:0">Results</h2>
+        <div class="muted">Monthly breakdown</div>
+      </div>
+
+      <div class="result-item">
+        <div class="muted">EMI (per month)</div>
+        <div class="big" id="emi">—</div>
+      </div>
+
+      <div class="result-item">
+        <div class="muted">Total payment</div>
+        <div id="totalPayment">—</div>
+      </div>
+
+      <div class="result-item">
+        <div class="muted">Total interest</div>
+        <div id="totalInterest">—</div>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+        <button id="copyBtn" class="secondary" type="button">Copy EMI</button>
+        <label style="display:flex;align-items:center;gap:6px;margin-left:auto">
+          <input type="checkbox" id="showAmort" />
+          <span class="muted">Show amortization table</span>
+        </label>
+      </div>
+
+      <div id="amortWrap" style="max-height:320px;overflow:auto;display:none">
+        <table class="amort-table" id="amortTable" aria-live="polite">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>EMI</th>
+              <th>Interest</th>
+              <th>Principal</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </aside>
+
+    <footer>
+      Formula: EMI = P × r × (1+r)^n / ((1+r)^n − 1) where r = monthly rate and n = number of months.
+    </footer>
+  </div>
+
+  <script>
+    // Utilities
+    const $ = id => document.getElementById(id);
+    const formatCurrency = (v) => {
+      if (!isFinite(v)) return '—';
+      return v.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+    };
+
+    const calcBtn = $('calcBtn');
+    const resetBtn = $('resetBtn');
+    const principalEl = $('principal');
+    const rateEl = $('rate');
+    const tenureEl = $('tenure');
+    const tenureUnitEl = $('tenureUnit');
+    const emiEl = $('emi');
+    const totalPaymentEl = $('totalPayment');
+    const totalInterestEl = $('totalInterest');
+    const errorEl = $('error');
+    const showAmortEl = $('showAmort');
+    const amortWrap = $('amortWrap');
+    const amortTableBody = document.querySelector('#amortTable tbody');
+    const copyBtn = $('copyBtn');
+    const lastUpdated = $('last-updated');
+
+    function computeEMI(P, annualRate, nMonths) {
+      // P = principal, annualRate in percent, nMonths = months
+      if (nMonths <= 0) return {emi: NaN, totalPayment: NaN, totalInterest: NaN};
+      const r = annualRate / 12 / 100; // monthly rate
+      if (r === 0) {
+
