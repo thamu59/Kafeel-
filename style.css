@@ -1,0 +1,100 @@
+h1{
+  color: rebeccapurple;
+}
+.one {
+  color: orange;
+  background: skyblue;
+  display: inline;
+  padding: 12px;
+  
+}
+li:hover{
+  color: red;
+}
+.one{
+  border:solid;
+  display:flex;
+}
+h2{
+color: yellowgreen;
+border: dotted;
+}
+div{
+  color: darkblue;
+  border: solid;
+  padding: 30px;
+  background: orangered;
+}
+.aaa{
+  color: darkblue;
+  border: solid;
+  padding: 30px;
+  background: violet;
+  
+}
+body {
+  background-color: #fff;
+  padding: 40px;
+}
+
+
+.roo{
+border-radius: 15px;
+z-index: 1;
+width: 200px;
+height: 100px;
+display: inherit;
+font-weight: bold;
+
+}
+.vin{
+  color: greenyellow;
+  border: 5px solid;
+  border-radius: 3px;
+}
+.vin::before{
+  content: "";
+  position: absolute;
+  inset: -5px;
+  z-index: -1;
+  width: 120%;
+  height: 200%;
+  background: linear-gradient(90deg,red, yellow,blue,green);
+  animation: spin 4s linear infinite;
+}
+.vin::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+img{
+  border: 50%;
+}
+div{
+  width: 200px;
+  height: 200px;
+  background-color: red;
+  animation: myanimation 5s infinite alternate 2s;
+}
+@keyframes myanimation{
+
+0% {background-color: red;}
+
+25% {background-color: yellow;}
+
+50% {background-color: blue;}
+
+75%{background-color: darkorange;}
+
+100% {background-color: green;}
+}
